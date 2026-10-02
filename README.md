@@ -2,7 +2,7 @@
 
 AABB -> AABB intersection:
 ```c++
-bool colliding = gcollision2::AABB{
+bool intersects = gcollision2::AABB{
         {-1, -1, -1},
         {1, 1, 1}
 }.Intersects(
@@ -15,7 +15,7 @@ bool colliding = gcollision2::AABB{
 
 Ray -> AABB intersection:
 ```c++
-gcollision2::RayHitInfo hit_info = gcollision2::IntersectRayAABB(
+bool hit = gcollision2::IntersectRayAABB(
         {0, 0, 0},
         {0, 0, -1},
         {{2, 2, -2}, {-2, -2, -3}}
