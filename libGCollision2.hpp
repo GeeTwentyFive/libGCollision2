@@ -1,7 +1,7 @@
 // https://github.com/GeeTwentyFive/libGCollision2
 #pragma once
 
-#include "linalg/linalg.h"
+#include "libs/linalg/linalg.h"
 using namespace linalg::aliases;
 
 #include <limits>

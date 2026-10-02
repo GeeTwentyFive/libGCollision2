@@ -1,4 +1,4 @@
-#include "../include/libGCollision2.hpp"
+#include "../libGCollision2.hpp"
 
 #include <iostream>
 
