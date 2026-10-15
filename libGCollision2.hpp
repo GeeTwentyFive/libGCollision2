@@ -48,7 +48,7 @@ struct AABB {
                 (p.y >= min.y && p.y <= max.y) &&
                 (p.z >= min.z && p.z <= max.z)
         );}
-        bool Intersects(const AABB& b) const {return (
+        bool IntersectsAABB(const AABB& b) const {return (
                 (min.x <= b.max.x && max.x >= b.min.x) &&
                 (min.y <= b.max.y && max.y >= b.min.y) &&
                 (min.z <= b.max.z && max.z >= b.min.z)
@@ -73,16 +73,13 @@ struct AABB {
         }
 };
 
-struct RayHitExtraInfo {
-        float distance = 0.0f;
-        float3 point = float3{0.0f, 0.0f, 0.0f};
-        float3 normal = float3{0.0f, 0.0f, 0.0f};
-};
 bool IntersectRayAABB(  // returns `true` if ray intersects AABB
         const float3& ray_origin,
         const float3& ray_direction,
         const AABB& target,
-        gcollision2::RayHitExtraInfo* OUT_extra_hit_info = nullptr  // optional extra hit info
+        float* OUT_distance = nullptr,
+        float3* OUT_point = nullptr,
+        float3* OUT_normal = nullptr
 ) {
         if (ray_direction.x == 0.0f && (ray_origin.x < target.min.x || ray_origin.x > target.max.x)) { return false; }
         if (ray_direction.y == 0.0f && (ray_origin.y < target.min.y || ray_origin.y > target.max.y)) { return false; }
@@ -132,23 +129,27 @@ bool IntersectRayAABB(  // returns `true` if ray intersects AABB
                 (t_min > t_max)  // No hit
         ) { return false; }
 
-        if (OUT_extra_hit_info == nullptr) return true;
+        if (OUT_distance == nullptr && OUT_point == nullptr && OUT_normal == nullptr) return true;  // early return micro-optimization (for only-yes/no intersection tests)
 
-        RayHitExtraInfo extra_hit_info{};
         bool inside_box = (
                 (ray_origin.x > target.min.x && ray_origin.x < target.max.x) &&
                 (ray_origin.y > target.min.y && ray_origin.y < target.max.y) &&
                 (ray_origin.z > target.min.z && ray_origin.z < target.max.z)
         );
         float hit_t = (inside_box ? t_max : t_min);  // If ray is inside box, then t_max (the other point on line (expressed as number representing distance along ray from ray_origin toward ray_direction (works even if not unit-length or normalized to unit-length))) is hit, else it's just t_min as usual
-        extra_hit_info.distance = hit_t * linalg::length(ray_direction);  // Multiplied by length of ray_direction, in case ray_direction is not normalized, to scale to world scale
-        extra_hit_info.point = ray_origin + (ray_direction * hit_t);
-        extra_hit_info.normal = float3{0, 0, 0};  // Since target is an AABB (*Axis-Aligned* Bounding Box) one can just set the same axis on the normal vector as the hit side's axis (is perpendicular to the face of the hit side) to either -1 or 1, depending on if the ray direction on that axis is positive or negative respectively:
-        if ((inside_box ? t_max_x : t_min_x) == hit_t) extra_hit_info.normal.x = (ray_direction.x > 0.0f) ? -1.0f : 1.0f;
-        else if ((inside_box ? t_max_y : t_min_y) == hit_t) extra_hit_info.normal.y = (ray_direction.y > 0.0f) ? -1.0f : 1.0f;
-        else extra_hit_info.normal.z = (ray_direction.z > 0.0f) ? -1.0f : 1.0f;
-        if (inside_box) extra_hit_info.normal = -extra_hit_info.normal;
-        *OUT_extra_hit_info = extra_hit_info;
+
+        if (OUT_distance != nullptr) *OUT_distance = hit_t * linalg::length(ray_direction);  // Multiplied by length of ray_direction, in case ray_direction is not normalized, to scale to world scale
+
+        if (OUT_point != nullptr) *OUT_point = ray_origin + (ray_direction * hit_t);
+
+        if (OUT_normal != nullptr) {
+                *OUT_normal = float3{0, 0, 0};  // Since target is an AABB (*Axis-Aligned* Bounding Box) one can just set the same axis on the normal vector as the hit side's axis (is perpendicular to the face of the hit side) to either -1 or 1, depending on if the ray direction on that axis is positive or negative respectively:
+                if ((inside_box ? t_max_x : t_min_x) == hit_t) (*OUT_normal).x = (ray_direction.x > 0.0f) ? -1.0f : 1.0f;
+                else if ((inside_box ? t_max_y : t_min_y) == hit_t) (*OUT_normal).y = (ray_direction.y > 0.0f) ? -1.0f : 1.0f;
+                else (*OUT_normal).z = (ray_direction.z > 0.0f) ? -1.0f : 1.0f;
+                if (inside_box) *OUT_normal = -(*OUT_normal);
+        }
+
         return true;
 }
 }

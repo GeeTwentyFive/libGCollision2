@@ -5,7 +5,7 @@ AABB -> AABB intersection:
 bool intersects = gcollision2::AABB{
         {-1, -1, -1},
         {1, 1, 1}
-}.Intersects(
+}.IntersectsAABB(
         gcollision2::AABB{
                 {0, 0, 0},
                 {2, 2, 2}
