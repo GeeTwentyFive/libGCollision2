@@ -5,16 +5,44 @@
 using namespace linalg::aliases;
 
 #include <limits>
+#include <float.h>
 
 namespace gcollision2 {
 struct AABB {
-        float3 min;
-        float3 max;
+        float3 min{FLT_MAX, FLT_MAX, FLT_MAX};
+        float3 max{-FLT_MAX, -FLT_MAX, -FLT_MAX};
+        static AABB FromVertices(float* vertices, size_t vertices_count, int pos_offset, int stride) {
+                gcollision2::AABB aabb;
+                for (size_t i = 0; i < vertices_count; i++) {
+                        const float x = *(float*)(((char*)vertices) + pos_offset + (i*stride));
+                        const float y = *(float*)(((char*)vertices) + pos_offset + (i*stride) + sizeof(float));
+                        const float z = *(float*)(((char*)vertices) + pos_offset + (i*stride) + sizeof(float)*2);
+                        if (x < aabb.min.x) aabb.min.x = x;
+                        else if (x > aabb.max.x) aabb.max.x = x;
+                        if (y < aabb.min.y) aabb.min.y = y;
+                        else if (y > aabb.max.y) aabb.max.y = y;
+                        if (z < aabb.min.z) aabb.min.z = z;
+                        else if (z > aabb.max.z) aabb.max.z = z;
+                }
+                return aabb;
+        }
         float3 GetSize() const {return max - min;}
-        float3 GetHalfExtent() const {return GetSize()/2.0f;}
         float3 GetCenterPos() const {return (min+max)/2.0f;}
-        void SetCenterPos(float3 new_pos) {float3 half_extent = GetHalfExtent(); min = new_pos - half_extent; max = new_pos + half_extent;}
-        float GetSurfaceArea() const {float3 size = GetSize(); return 2.0f * (size.x*size.y + size.y*size.z + size.z*size.x);}
+        void SetCenterPos(float3 new_pos) {float3 half_extent = GetSize()/2.0f; min = new_pos - half_extent; max = new_pos + half_extent;}
+        AABB Transformed(float* transform_matrix) {
+                float3 aabb_cuboid[8] {
+                        {min.x, min.y, min.z},
+                        {min.x, min.y, max.z},
+                        {min.x, max.y, min.z},
+                        {min.x, max.y, max.z},
+                        {max.x, min.y, min.z},
+                        {max.x, min.y, max.z},
+                        {max.x, max.y, min.z},
+                        {max.x, max.y, max.z}
+                };
+                for (float3& vertex : aabb_cuboid) vertex = linalg::mul(*(float4x4*)transform_matrix, float4{vertex, 1.0f}).xyz();
+                return FromVertices((float*)aabb_cuboid, 8, 0, 0);
+        }
         bool ContainsPoint(const float3& p) const {return (
                 (p.x >= min.x && p.x <= max.x) &&
                 (p.y >= min.y && p.y <= max.y) &&
