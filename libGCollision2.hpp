@@ -41,7 +41,7 @@ struct AABB {
                         {max.x, max.y, max.z}
                 };
                 for (float3& vertex : aabb_cuboid) vertex = linalg::mul(*(float4x4*)transform_matrix, float4{vertex, 1.0f}).xyz();
-                return FromVertices((float*)aabb_cuboid, 8, 0, 0);
+                return FromVertices((float*)aabb_cuboid, 8, 0, sizeof(float3));
         }
         bool ContainsPoint(const float3& p) const {return (
                 (p.x >= min.x && p.x <= max.x) &&
