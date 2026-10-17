@@ -13,10 +13,11 @@ int main() {
         float ray_hit_distance;
         float3 ray_hit_point;
         float3 ray_hit_normal;
+        bool ray_inside;
         if (gcollision2::IntersectRayAABB(
                 {0, 0, 4}, {0, 0, -1},
                 box,
-                &ray_hit_distance, &ray_hit_point, &ray_hit_normal
+                &ray_hit_distance, &ray_hit_point, &ray_hit_normal, &ray_inside
         )) {
                 std::cout << "Ray hit!" << std::endl;
                 std::cout << "Ray hit distance: " << ray_hit_distance << std::endl;
@@ -26,6 +27,7 @@ int main() {
                 std::cout << "Ray hit normal X: " << ray_hit_normal.x << std::endl;
                 std::cout << "Ray hit normal Y: " << ray_hit_normal.y << std::endl;
                 std::cout << "Ray hit normal Z: " << ray_hit_normal.z << std::endl;
+                std::cout << "Ray inside?: " << ray_inside << std::endl;
         }
         else std::cout << "No ray hit!" << std::endl;
 

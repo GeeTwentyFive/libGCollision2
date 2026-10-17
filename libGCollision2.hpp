@@ -79,7 +79,8 @@ bool IntersectRayAABB(  // returns `true` if ray intersects AABB
         const AABB& target,
         float* OUT_distance = nullptr,
         float3* OUT_point = nullptr,
-        float3* OUT_normal = nullptr
+        float3* OUT_normal = nullptr,
+        bool* OUT_inside = nullptr
 ) {
         if (ray_direction.x == 0.0f && (ray_origin.x < target.min.x || ray_origin.x > target.max.x)) { return false; }
         if (ray_direction.y == 0.0f && (ray_origin.y < target.min.y || ray_origin.y > target.max.y)) { return false; }
@@ -121,8 +122,8 @@ bool IntersectRayAABB(  // returns `true` if ray intersects AABB
                 t_max_z = (target.max.z - ray_origin.z) / ray_direction.z;
         }
 
-        float t_min = std::max( std::max(t_min_x, t_min_y), t_min_z );
-        float t_max = std::min( std::min(t_max_x, t_max_y),  t_max_z );
+        const float t_min = std::max( std::max(t_min_x, t_min_y), t_min_z );
+        const float t_max = std::min( std::min(t_max_x, t_max_y),  t_max_z );
 
         if (
                 (t_max < 0.0f) ||  // AABB behind ray
@@ -131,7 +132,7 @@ bool IntersectRayAABB(  // returns `true` if ray intersects AABB
 
         if (OUT_distance == nullptr && OUT_point == nullptr && OUT_normal == nullptr) return true;  // early return micro-optimization (for only-yes/no intersection tests)
 
-        bool inside_box = (
+        const bool inside_box = (
                 (ray_origin.x > target.min.x && ray_origin.x < target.max.x) &&
                 (ray_origin.y > target.min.y && ray_origin.y < target.max.y) &&
                 (ray_origin.z > target.min.z && ray_origin.z < target.max.z)
@@ -149,6 +150,8 @@ bool IntersectRayAABB(  // returns `true` if ray intersects AABB
                 else (*OUT_normal).z = (ray_direction.z > 0.0f) ? -1.0f : 1.0f;
                 if (inside_box) *OUT_normal = -(*OUT_normal);
         }
+
+        if (OUT_inside != nullptr) *OUT_inside = inside_box;
 
         return true;
 }
