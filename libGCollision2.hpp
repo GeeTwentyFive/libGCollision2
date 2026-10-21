@@ -155,6 +155,46 @@ bool IntersectRayAABB(  // returns `true` if ray intersects AABB
 
         return true;
 }
+
+int64_t IntersectRayAABBs(  // returns index of closest hit AABB, else `-1`
+        const float3& ray_origin,
+        const float3& ray_direction,
+        const void* targets, size_t targets_count, size_t target_aabb_offset, size_t target_aabb_stride,
+        float* OUT_distance = nullptr,
+        float3* OUT_point = nullptr,
+        float3* OUT_normal = nullptr,
+        bool* OUT_inside = nullptr
+) {
+        int64_t closest_hit_aabb_index = -1;
+        float closest_hit_aabb_distance = FLT_MAX;
+        float3 closest_hit_aabb_point;
+        float3 closest_hit_aabb_normal;
+        bool closest_hit_aabb_inside;
+        float distance;
+        float3 point;
+        float3 normal;
+        bool inside;
+        for (size_t i = 0; i < targets_count; i++) {
+                if (IntersectRayAABB(ray_origin, ray_direction,
+                        *(AABB*)(((char*)targets) + target_aabb_offset + (i*target_aabb_stride)),
+                        &distance,
+                        (OUT_point != nullptr) ? &point : nullptr,
+                        (OUT_normal != nullptr) ? &normal : nullptr,
+                        (OUT_inside != nullptr) ? &inside : nullptr
+                )) if (distance < closest_hit_aabb_distance) {
+                        closest_hit_aabb_distance = distance;
+                        closest_hit_aabb_index = i;
+                        if (OUT_point != nullptr) closest_hit_aabb_point = point;
+                        if (OUT_normal != nullptr) closest_hit_aabb_normal = normal;
+                        if (OUT_inside != nullptr) closest_hit_aabb_inside = inside;
+                }
+        }
+        if (OUT_distance != nullptr) *OUT_distance = closest_hit_aabb_distance;
+        if (OUT_point != nullptr) *OUT_point = closest_hit_aabb_point;
+        if (OUT_normal != nullptr) *OUT_normal = closest_hit_aabb_normal;
+        if (OUT_inside != nullptr) *OUT_inside = closest_hit_aabb_inside;
+        return closest_hit_aabb_index;
+}
 }
 
 
