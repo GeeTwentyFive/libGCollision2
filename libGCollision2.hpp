@@ -1,5 +1,7 @@
 // https://github.com/GeeTwentyFive/libGCollision2
 #pragma once
+#ifndef _LIBGCOLLISION2_H
+#define _LIBGCOLLISION2_H
 
 #include "libs/linalg/linalg.h"
 using namespace linalg::aliases;
@@ -196,6 +198,8 @@ int64_t IntersectRayAABBs(  // returns index of closest hit AABB, else `-1`
         return closest_hit_aabb_index;
 }
 }
+
+#endif // _LIBGCOLLISION2_H
 
 
 
