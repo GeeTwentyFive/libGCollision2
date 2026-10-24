@@ -1,5 +1,4 @@
 // https://github.com/GeeTwentyFive/libGCollision2
-#pragma once
 #ifndef _LIBGCOLLISION2_H
 #define _LIBGCOLLISION2_H
 
